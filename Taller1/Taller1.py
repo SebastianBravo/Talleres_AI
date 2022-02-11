@@ -47,7 +47,7 @@ training_b, testing_b = model_selection.train_test_split(data_3D_b, test_size=in
 
 # Visualizacion de datos
 
-'''-----------------Clasificar Bayesiano Gaussiano-----------------'''
+'''-----------------Clasificador Bayesiano Gaussiano-----------------'''
 # Numero de atributos
 n = np.size(data_3D_a,axis=1)
 
@@ -57,7 +57,7 @@ P_3D_b = len(training_b)/(len(training_a) + len(training_b))
 
 # Calculo del centro de cada clase
 u_3D_a = training_a.mean(axis=0)
-u_3D_b = training_a.mean(axis=0)
+u_3D_b = training_b.mean(axis=0)
 
 # Matriz de covarianza:
 K_3D_a = np.cov(np.transpose(training_a))
@@ -65,7 +65,11 @@ K_3D_b = np.cov(np.transpose(training_b))
 
 # Matriz de prueba
 X = np.concatenate((testing_a, testing_b), axis=0)
+
+# vector de comparacion
 y_real = np.concatenate((np.zeros((len(testing_a),1)), np.ones((len(testing_b),1))), axis=0)
+
+# vector con las clasificaciones
 y_bayes = np.zeros((len(X),1))
 
 for i in range(len(X)):
@@ -79,11 +83,60 @@ for i in range(len(X)):
 	# Proceso de clasificacion 
 	clase = P.index(max(P))
 
+	# Clase a
 	if clase==0:
 		y_bayes[i] = 0
+
+	# Clase b
 	if clase==1:
 		y_bayes[i] = 1
 
 # Carlculo error porcentual de la clasificacion
 error_bayes = 100*sum(y_bayes != y_real)/len(y_real)
 print(error_bayes)
+
+'''--------------Clasificador Bayesiano Gaussiano Naive---------------'''
+
+# Probabilidades a pirori las misma
+
+# Desviaciones estandar
+std_a = training_a.std(axis=0)
+std_b = training_b.std(axis=0)
+
+# vector de comparacion
+y_real = np.concatenate((np.zeros((len(testing_a),1)), np.ones((len(testing_b),1))), axis=0)
+
+# vector con las clasificaciones
+y_bayes_naive = np.zeros((len(X),1))
+
+for i in range(len(X)):
+	# Lista con probabilidades de atributos
+	P_a_X = []
+	P_b_X = []
+	for j in range(n):
+		# Calculo de probabilidades a posteriori de cada atributo
+		P_a_X.append(P_3D_a*(1/(np.sqrt(2*(np.pi**n))*std_a[j]))*(np.exp(-0.5*(X[i,j]-u_3D_a)**2/std_a[j]**2)))
+		P_b_X.append(P_3D_b*(1/(np.sqrt(2*(np.pi**n))*std_b[j]))*(np.exp(-0.5*(X[i,j]-u_3D_b)**2/std_b[j]**2)))
+
+	# Probabilidad por clase
+	P_a_X = np.prod(P_a_X)
+	P_b_X = np.prod(P_b_X)
+
+	# Vector de probabilidades
+	P = (P_a_X, P_b_X)
+
+	# Proceso de clasificacion 
+	clase = P.index(max(P))
+
+	# Clase a
+	if clase==0:
+		y_bayes_naive[i] = 0
+
+	# Clase b
+	if clase==1:
+		y_bayes_naive[i] = 1
+
+# Carlculo error porcentual de la clasificacion
+error_bayes_naive = 100*sum(y_bayes_naive != y_real)/len(y_real)
+print(error_bayes_naive)
+
