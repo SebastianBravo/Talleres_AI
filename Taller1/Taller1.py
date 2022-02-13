@@ -1,11 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn import model_selection #Segmentacion de datos
+from sklearn import model_selection 
 
 # Importar la informacion del archivo data
 data = np.load('data.npy', allow_pickle=True)
-data = data.item(0)
-
+data = data.item()
 
 '''---------------------------- Punto 1 ----------------------------'''
 
@@ -34,6 +33,52 @@ u_2D_b = data_2D_b.mean(axis=1)
 # Calculo de las matrices de covarianza de cada clase
 K_2D_a = np.cov(data_2D_a)
 K_2D_b = np.cov(data_2D_b)
+
+
+# Histograma clase_a data_2D
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+hist, xedges, yedges = np.histogram2d(data_2D_a[0], data_2D_a[1], bins=(20,20))
+xpos, ypos = np.meshgrid(xedges[:-1]+xedges[1:], yedges[:-1]+yedges[1:])
+
+xpos = xpos.flatten()/2.
+ypos = ypos.flatten()/2.
+zpos = np.zeros_like (xpos)
+
+dx = xedges [1] - xedges [0]
+dy = yedges [1] - yedges [0]
+dz = hist.flatten()
+
+ax.bar3d(xpos, ypos, zpos, dx, dy, dz, zsort='average')
+
+plt.title('Histograma clase_a data_2D')
+plt.xlabel('Atributo 1')
+plt.ylabel('Atributo 2')
+#plt.zlabel('Frecuencia')
+plt.show()
+
+# Histograma clase_b data_2D
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+hist, xedges, yedges = np.histogram2d(data_2D_b[0], data_2D_b[1], bins=(20,20))
+xpos, ypos = np.meshgrid(xedges[:-1]+xedges[1:], yedges[:-1]+yedges[1:])
+
+xpos = xpos.flatten()/2.
+ypos = ypos.flatten()/2.
+zpos = np.zeros_like (xpos)
+
+dx = xedges [1] - xedges [0]
+dy = yedges [1] - yedges [0]
+dz = hist.flatten()
+
+ax.bar3d(xpos, ypos, zpos, dx, dy, dz, zsort='average')
+
+plt.title('Histograma clase_a data_2D')
+plt.xlabel('Atributo 1')
+plt.ylabel('Atributo 2')
+#plt.zlabel('Frecuencia')
+plt.show()
+
 
 '''---------------------------- Punto 2 ----------------------------'''
 
@@ -139,4 +184,3 @@ for i in range(len(X)):
 # Carlculo error porcentual de la clasificacion
 error_bayes_naive = 100*sum(y_bayes_naive != y_real)/len(y_real)
 print(error_bayes_naive)
-
