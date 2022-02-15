@@ -160,11 +160,11 @@ plt.grid()
 
 # Carlculo error porcentual de la clasificacion
 error_bayes = 100*sum(y_bayes != y_real)/len(y_real)
-print(f"Error Bayes Gaussiano: {error_bayes[0]:.3f}")
+print(f"Error Bayes Gaussiano: {error_bayes[0]:.3f}%")
 
 '''--------------Clasificador Bayesiano Gaussiano Naive---------------'''
 
-# Probabilidades a pirori las misma
+# Probabilidades a pirori y medias iguales al clasificador anterior
 
 # Desviaciones estandar
 std_a = training_a.std(axis=0)
@@ -222,4 +222,4 @@ plt.show()
 
 # Carlculo error porcentual de la clasificacion
 error_bayes_naive = 100*sum(y_bayes_naive != y_real)/len(y_real)
-print(f"Error Bayes Gaussiano Naive: {error_bayes_naive[0]:.3f}")
+print(f"Error Bayes Gaussiano Naive: {error_bayes_naive[0]:.3f}%")
