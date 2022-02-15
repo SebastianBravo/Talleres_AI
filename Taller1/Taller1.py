@@ -24,7 +24,6 @@ plt.xlabel('Atributo 1')
 plt.ylabel('Atributo 2')
 plt.legend()
 plt.grid()
-#plt.show()
 
 # Calculo del centro de cada clase
 u_2D_a = data_2D_a.mean(axis=1)
@@ -33,7 +32,6 @@ u_2D_b = data_2D_b.mean(axis=1)
 # Calculo de las matrices de covarianza de cada clase
 K_2D_a = np.cov(data_2D_a)
 K_2D_b = np.cov(data_2D_b)
-
 
 # Histograma clase_a data_2D
 fig = plt.figure()
@@ -54,8 +52,6 @@ ax.bar3d(xpos, ypos, zpos, dx, dy, dz, zsort='average')
 plt.title('Histograma clase_a data_2D')
 plt.xlabel('Atributo 1')
 plt.ylabel('Atributo 2')
-#plt.zlabel('Frecuencia')
-plt.show()
 
 # Histograma clase_b data_2D
 fig = plt.figure()
@@ -73,12 +69,9 @@ dz = hist.flatten()
 
 ax.bar3d(xpos, ypos, zpos, dx, dy, dz, zsort='average')
 
-plt.title('Histograma clase_a data_2D')
+plt.title('Histograma clase_b data_2D')
 plt.xlabel('Atributo 1')
 plt.ylabel('Atributo 2')
-#plt.zlabel('Frecuencia')
-plt.show()
-
 
 '''---------------------------- Punto 2 ----------------------------'''
 
@@ -91,6 +84,16 @@ training_a, testing_a = model_selection.train_test_split(data_3D_a, test_size=in
 training_b, testing_b = model_selection.train_test_split(data_3D_b, test_size=int(0.2*len(data_3D_b)), train_size=int(0.8*len(data_3D_b)))
 
 # Visualizacion de datos
+plt.figure()
+ax = plt.axes(projection ="3d")
+ax.scatter3D(training_a[:,0], training_a[:,1], training_a[:,2], c='red', label='Clase a')
+ax.scatter3D(training_b[:,0], training_b[:,1], training_b[:,2], c='blue', label='Clase b')
+plt.title('Conjunto de entrenamiento datos data_3D ')
+ax.set_xlabel('Atributo 1')
+ax.set_ylabel('Atributo 2')
+ax.set_zlabel('Atributo 3')
+plt.legend()
+plt.grid()
 
 '''-----------------Clasificador Bayesiano Gaussiano-----------------'''
 # Numero de atributos
@@ -119,8 +122,11 @@ y_bayes = np.zeros((len(X),1))
 
 for i in range(len(X)):
 	# Funcion de verosimilitud de cada clase:
-	P_a_X = P_3D_a*(1/(np.sqrt(2*(np.pi**n)*np.linalg.det(K_3D_a))))*(np.exp(-0.5*np.matmul(np.matmul(X[i,:]-u_3D_a,np.linalg.inv(K_3D_a)),X[i,:]-u_3D_a)))
-	P_b_X = P_3D_b*(1/(np.sqrt(2*(np.pi**n)*np.linalg.det(K_3D_b))))*(np.exp(-0.5*np.matmul(np.matmul(X[i,:]-u_3D_b,np.linalg.inv(K_3D_b)),X[i,:]-u_3D_b)))
+	P_a_X = P_3D_a*(1/(np.sqrt(2*(np.pi**n)*np.linalg.det(K_3D_a))))*(
+			np.exp(-0.5*np.matmul(np.matmul(X[i,:]-u_3D_a,np.linalg.inv(K_3D_a)),X[i,:]-u_3D_a)))
+
+	P_b_X = P_3D_b*(1/(np.sqrt(2*(np.pi**n)*np.linalg.det(K_3D_b))))*(
+			np.exp(-0.5*np.matmul(np.matmul(X[i,:]-u_3D_b,np.linalg.inv(K_3D_b)),X[i,:]-u_3D_b)))
 
 	# Vector de probabilidades
 	P = (P_a_X, P_b_X)
@@ -136,9 +142,25 @@ for i in range(len(X)):
 	if clase==1:
 		y_bayes[i] = 1
 
+# Clasificacion del conjunto de prueba
+a_bayes = np.array([X[i] for i in range(len(y_bayes)) if y_bayes[i] == 0])
+b_bayes = np.array([X[i] for i in range(len(y_bayes)) if y_bayes[i] == 1])
+
+# Visualizacion conjunto de prueba clasificado
+plt.figure()
+ax = plt.axes(projection ="3d")
+ax.scatter3D(a_bayes[:,0], a_bayes[:,1], a_bayes[:,2], c='red', label='Clase a')
+ax.scatter3D(b_bayes[:,0], b_bayes[:,1], b_bayes[:,2], c='blue', label='Clase b')
+plt.title('Conjunto de prueba datos data_3D clasificado con Bayes Gaussiano')
+ax.set_xlabel('Atributo 1')
+ax.set_ylabel('Atributo 2')
+ax.set_zlabel('Atributo 3')
+plt.legend()
+plt.grid()
+
 # Carlculo error porcentual de la clasificacion
 error_bayes = 100*sum(y_bayes != y_real)/len(y_real)
-print(error_bayes)
+print(f"Error Bayes Gaussiano: {error_bayes[0]:.3f}")
 
 '''--------------Clasificador Bayesiano Gaussiano Naive---------------'''
 
@@ -181,6 +203,23 @@ for i in range(len(X)):
 	if clase==1:
 		y_bayes_naive[i] = 1
 
+# Clasificacion del conjunto de prueba
+a_bayes_naive = np.array([X[i] for i in range(len(y_bayes_naive)) if y_bayes_naive[i] == 0])
+b_bayes_naive = np.array([X[i] for i in range(len(y_bayes_naive)) if y_bayes_naive[i] == 1])
+
+# Visualizacion conjunto de prueba clasificado
+plt.figure()
+ax = plt.axes(projection ="3d")
+ax.scatter3D(a_bayes_naive[:,0], a_bayes_naive[:,1], a_bayes_naive[:,2], c='red', label='Clase a')
+ax.scatter3D(b_bayes_naive[:,0], b_bayes_naive[:,1], b_bayes_naive[:,2], c='blue', label='Clase b')
+plt.title('Conjunto de prueba datos data_3D clasificado con Bayes Gaussiano Naive')
+ax.set_xlabel('Atributo 1')
+ax.set_ylabel('Atributo 2')
+ax.set_zlabel('Atributo 3')
+plt.legend()
+plt.grid()
+plt.show()
+
 # Carlculo error porcentual de la clasificacion
 error_bayes_naive = 100*sum(y_bayes_naive != y_real)/len(y_real)
-print(error_bayes_naive)
+print(f"Error Bayes Gaussiano Naive: {error_bayes_naive[0]:.3f}")
