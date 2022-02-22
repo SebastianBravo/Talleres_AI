@@ -20,7 +20,6 @@ data_3D_b = data_3D['data_b']
 training_a, testing_a = model_selection.train_test_split(data_3D_a, test_size=int(0.2*len(data_3D_a)), train_size=int(0.8*len(data_3D_a)))
 training_b, testing_b = model_selection.train_test_split(data_3D_b, test_size=int(0.2*len(data_3D_b)), train_size=int(0.8*len(data_3D_b)))
 
-
 # Se remueve la media de cada dato del conjunto de entrenamiento:
 training_a_bar = training_a - np.mean(training_a, axis=0)
 training_b_bar = training_b - np.mean(training_b, axis=0)
@@ -67,16 +66,16 @@ plt.grid()
 n = m
 
 # Probabilidades a pirori
-P_3D_a = len(new_training_a)/(len(new_training_a) + len(new_training_b))
-P_3D_b = len(new_training_b)/(len(new_training_a) + len(new_training_b))
+P_new_a = len(new_training_a)/(len(new_training_a) + len(new_training_b))
+P_new_b = len(new_training_b)/(len(new_training_a) + len(new_training_b))
 
 # Calculo del centro de cada clase
-u_3D_a = new_training_a.mean(axis=0)
-u_3D_b = new_training_b.mean(axis=0)
+u_new_a = new_training_a.mean(axis=0)
+u_new_b = new_training_b.mean(axis=0)
 
 # Matriz de covarianza:
-K_3D_a = np.cov(np.transpose(new_training_a))
-K_3D_b = np.cov(np.transpose(new_training_b))
+K_new_a = np.cov(np.transpose(new_training_a))
+K_new_b = np.cov(np.transpose(new_training_b))
 
 # Matriz de prueba aplicando PCA
 
@@ -100,11 +99,11 @@ y_bayes = np.zeros((len(X),1))
 
 for i in range(len(X)):
 	# Funcion de verosimilitud de cada clase:
-	P_a_X = P_3D_a*(1/(np.sqrt(2*(np.pi**n)*np.linalg.det(K_3D_a))))*(
-			np.exp(-0.5*np.matmul(np.matmul(X[i,:]-u_3D_a,np.linalg.inv(K_3D_a)),X[i,:]-u_3D_a)))
+	P_a_X = P_new_a*(1/(np.sqrt(2*(np.pi**n)*np.linalg.det(K_new_a))))*(
+			np.exp(-0.5*np.matmul(np.matmul(X[i,:]-u_new_a,np.linalg.inv(K_new_a)),X[i,:]-u_new_a)))
 
-	P_b_X = P_3D_b*(1/(np.sqrt(2*(np.pi**n)*np.linalg.det(K_3D_b))))*(
-			np.exp(-0.5*np.matmul(np.matmul(X[i,:]-u_3D_b,np.linalg.inv(K_3D_b)),X[i,:]-u_3D_b)))
+	P_b_X = P_new_b*(1/(np.sqrt(2*(np.pi**n)*np.linalg.det(K_new_b))))*(
+			np.exp(-0.5*np.matmul(np.matmul(X[i,:]-u_new_b,np.linalg.inv(K_new_b)),X[i,:]-u_new_b)))
 
 	# Vector de probabilidades
 	P = (P_a_X, P_b_X)
@@ -133,7 +132,7 @@ plt.xlabel('Atributo 1')
 plt.ylabel('Atributo 2')
 plt.legend()
 plt.grid()
-plt.show()
+#plt.show()
 
 # Carlculo error porcentual de la clasificacion
 error_bayes = 100*sum(y_bayes != y_real)/len(y_real)
