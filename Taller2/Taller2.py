@@ -132,7 +132,7 @@ plt.xlabel('Atributo 1')
 plt.ylabel('Atributo 2')
 plt.legend()
 plt.grid()
-#plt.show()
+plt.show()
 
 # Carlculo error porcentual de la clasificacion
 error_bayes = 100*sum(y_bayes != y_real)/len(y_real)
