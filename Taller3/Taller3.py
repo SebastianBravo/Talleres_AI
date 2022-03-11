@@ -1,18 +1,15 @@
-# -*- coding: utf-8 -*-
 """
-Desarrollado por: Wilson Javier Arenas López
-Tema: Clasificación Lineal
-Objetivo: Dado un conjunto de datos, clasificar las observaciones haciendo uso de los clasificadores lineales vistos en
-          clase (LMS, DL, F y P), y concluir acerca de ellos. 
-Fecha: 04/03/2022 - 08/03/2022
+Desarrollado por:   Juan Sebastián Bravo Santacruz
+                    Daniel Stiven Zambrano Acosta
+                    Sergio Lavao Osorio
 """
 
+import math
 import numpy as np
 import matplotlib.pyplot as plt
+from tabulate import tabulate
 from sklearn import model_selection
 from sklearn.metrics import confusion_matrix
-import math
-from tabulate import tabulate
 from sklearn.metrics import accuracy_score
 
 db = np.load('data_2D.npy',allow_pickle = True).item()
@@ -69,7 +66,10 @@ def segmentacion_datos(training_matrix, i, valid_len):
 
     return train, valid
 
-
+ 
+'''
+Algoritmo mínimos cuadrados (LMS):
+'''
 def LMS(train_data, validation_data, y_train, y_test):
     # Entrenamiento: 
     training_matrix = np.concatenate((train_data,np.ones((len(train_data),1))),axis = 1) # concatenamos x0 = 1
@@ -101,14 +101,84 @@ def LMS(train_data, validation_data, y_train, y_test):
     # sp_lms = 100*c_lms[1,1]/(c_lms[1,1] + c_lms[1,0])
 
     #return [W, acc_lms, err_lms, se_lms, sp_lms]
-    return [W, c_lms]
+    return accuracy_score(y_test, y_out)
+
+'''
+Algoritmo discriminiante Logistico
+'''
+
+def sigmoid(x):
+    sig = 1/(1 + math.exp(-x))
+    return sig
+
+def DL(train_data, validation_data, y_train, y_test):
+    # Entrenamiento:
+    training_matrix = np.concatenate((train_data,np.ones((len(train_data),1))),axis = 1) # concatenamos x0 = 1
+    eta = 0.01 # tasa de aprendizaje
+    W = np.zeros((d + 1,1))
+    epochs = 100
+
+    for k in range(epochs): 
+        idx = np.random.permutation(len(training_matrix)) # vector de elementos aleatorios
+        for i in range(len(training_matrix)): 
+            h = np.matmul(np.transpose(W),np.transpose(training_matrix[idx[i],:])) # proyección del dato Xi en el vector W
+            p = y_train[idx[i]]*(sigmoid(y_train[idx[i]]*h))*training_matrix[idx[i],:]  
+            W = np.transpose(np.transpose(W) - eta*p) # obtenemos el vector W moviéndonos en dirección opuesta al gradiente de la función de costo (DL)
+         
+    # Prueba: 
+    testing_matrix = np.concatenate((validation_data,np.ones((len(validation_data),1))),axis = 1) # concatenamos x0 = 1
+    y_out = -np.sign(np.transpose(np.matmul(np.transpose(W),np.transpose(testing_matrix)))) # si el dato es de la clase A, entonces w'x > 0 y viceversa
+
+    # Métricas de rendimiento: 
+    c_dl = confusion_matrix(y_test, y_out)
+    # acc_dl = 100*(c_dl[0,0] + c_dl[1,1])/sum(sum(c_dl))
+    # err_dl = 100 - acc_dl
+    # se_dl = 100*c_dl[0,0]/(c_dl[0,0] + c_dl[0,1])
+    # sp_dl = 100*c_dl[1,1]/(c_dl[1,1] + c_dl[1,0])
+
+    #return [W, acc_lms, err_lms, se_lms, sp_lms]
+    return accuracy_score(y_test, y_out)
+
+def perceptron(train_data, validation_data, y_train, y_test):
+    # Entrenamiento:
+    training_matrix = np.concatenate((train_data,np.ones((len(train_data),1))),axis = 1) # concatenamos x0 = 1 
+    eta = 0.01 # tasa de aprendizaje
+    W = np.zeros((d + 1,1))
+    epochs = 100
+    for k in range(epochs): 
+        idx = np.random.permutation(len(training_matrix)) # vector de elementos aleatorios
+        for i in range(len(training_matrix)):
+            h = np.matmul(np.transpose(W),np.transpose(training_matrix[idx[i],:])) # proyección del dato Xi en el vector W
+            if h*y_train[idx[i]] <= 0: 
+                W = W + eta*np.transpose(training_matrix[idx[i],:]).reshape(d + 1,1)*y_train[idx[i]]   
+            
+    # Prueba: 
+    testing_matrix = np.concatenate((validation_data,np.ones((len(validation_data),1))),axis = 1) # concatenamos x0 = 1
+    y_out = np.sign(np.transpose(np.matmul(np.transpose(W),np.transpose(testing_matrix)))) # si el dato es de la clase A, entonces w'x > 0 y viceversa
+
+    # Métricas de rendimiento: 
+    c_p = confusion_matrix(y_test, y_out)
+    # acc_p = 100*(c_p[0,0] + c_p[1,1])/sum(sum(c_p))
+    # err_p = 100 - acc_p
+    # se_p = 100*c_p[0,0]/(c_p[0,0] + c_p[0,1])
+    # sp_p = 100*c_p[1,1]/(c_p[1,1] + c_p[1,0])
+    #return [W, acc_lms, err_lms, se_lms, sp_lms]
+    return accuracy_score(y_test, y_out)
 
 k = 10
 valid_len = int(len(training_matrix_ab)/k)
 
-resultados_ab = []
-resultados_ac = []
-resultados_bc = []
+resultados_LMS_ab = []
+resultados_LMS_ac = []
+resultados_LMS_bc = []
+
+resultados_DL_ab = []
+resultados_DL_ac = []
+resultados_DL_bc = []
+
+resultados_P_ab = []
+resultados_P_ac = []
+resultados_P_bc = []
 
 for i in range(k):
     # Datos de validación y entrenamiento para hiperplano entre clase a y clase b
@@ -121,6 +191,17 @@ for i in range(k):
     train_bc, valid_bc = segmentacion_datos(training_matrix_bc, i, valid_len)
     y_train_bc_cross, y_valid_bc_cross = segmentacion_datos(y_train_bc, i, valid_len)
 
-    resultados_ab.append(LMS(train_ab, valid_ab, y_train_ab_cross, y_valid_ab_cross))
-    resultados_ac.append(LMS(train_ac, valid_ac, y_train_ac_cross, y_valid_ac_cross))
-    resultados_bc.append(LMS(train_bc, valid_bc, y_train_bc_cross, y_valid_bc_cross))
+    # Resulatados LMS
+    resultados_LMS_ab.append(LMS(train_ab, valid_ab, y_train_ab_cross, y_valid_ab_cross))
+    resultados_LMS_ac.append(LMS(train_ac, valid_ac, y_train_ac_cross, y_valid_ac_cross))
+    resultados_LMS_bc.append(LMS(train_bc, valid_bc, y_train_bc_cross, y_valid_bc_cross))
+
+    # Resulatados DL
+    resultados_DL_ab.append(DL(train_ab, valid_ab, y_train_ab_cross, y_valid_ab_cross))
+    resultados_DL_ac.append(DL(train_ac, valid_ac, y_train_ac_cross, y_valid_ac_cross))
+    resultados_DL_bc.append(DL(train_bc, valid_bc, y_train_bc_cross, y_valid_bc_cross))
+
+    # Resulatados Perceptron
+    resultados_P_ab.append(perceptron(train_ab, valid_ab, y_train_ab_cross, y_valid_ab_cross))
+    resultados_P_ac.append(perceptron(train_ac, valid_ac, y_train_ac_cross, y_valid_ac_cross))
+    resultados_P_bc.append(perceptron(train_bc, valid_bc, y_train_bc_cross, y_valid_bc_cross))
