@@ -27,24 +27,18 @@ training_a, testing_a = model_selection.train_test_split(X_a,test_size = int(0.1
 training_b, testing_b = model_selection.train_test_split(X_b,test_size = int(0.15*len(X_b)),train_size = int(0.85*len(X_b)))
 training_c, testing_c = model_selection.train_test_split(X_c,test_size = int(0.15*len(X_c)),train_size = int(0.85*len(X_c)))
 
-training_matrix_ab = np.concatenate((training_a,training_b),axis = 0) # concatenación de matrices de entrenamiento
-testing_matrix_ab = np.concatenate((testing_a,testing_b),axis = 0) # concatenación de matrices de prueba
+training_matrix_abc = np.concatenate((training_a[0].reshape(1,2), training_b[0].reshape(1,2), training_c[0].reshape(1,2)),axis=0)
 
-training_matrix_ac = np.concatenate((training_a,training_c),axis = 0) # concatenación de matrices de entrenamiento
-testing_matrix_ac = np.concatenate((testing_a,testing_c),axis = 0) # concatenación de matrices de prueba
+for i in range(len(training_a)-1):
+    training_matrix_abc = np.concatenate((training_matrix_abc, np.concatenate((training_a[i+1].reshape(1,2), training_b[i+1].reshape(1,2), training_c[i+1].reshape(1,2)),axis=0)), axis=0)
 
-training_matrix_bc = np.concatenate((training_b,training_c),axis = 0) # concatenación de matrices de entrenamiento
-testing_matrix_bc = np.concatenate((testing_b,testing_c),axis = 0) # concatenación de matrices de prueba
+y_train_ab =  np.array([1,-1,-1]*len(training_a)).reshape(len(training_matrix_abc),1) # vectores teóricos (etiquetas)
+y_train_ac =  np.array([-1,1,-1]*len(training_a)).reshape(len(training_matrix_abc),1) # vectores teóricos (etiquetas)
+y_train_bc =  np.array([-1,-1,1]*len(training_a)).reshape(len(training_matrix_abc),1) # vectores teóricos (etiquetas)
 
-y_train_ab =  np.concatenate((np.ones((len(training_a),1)),-1*np.ones((len(training_b),1))),axis = 0) # vectores teóricos (etiquetas)
-y_train_ac =  np.concatenate((np.ones((len(training_a),1)),-1*np.ones((len(training_c),1))),axis = 0) # vectores teóricos (etiquetas)
-y_train_bc =  np.concatenate((np.ones((len(training_b),1)),-1*np.ones((len(training_c),1))),axis = 0) # vectores teóricos (etiquetas)
-
-y_test_ab =  np.concatenate((np.ones((len(testing_a),1)),-1*np.ones((len(testing_b),1))),axis = 0) # vectores teóricos (etiquetas)
-y_test_ac =  np.concatenate((np.ones((len(testing_a),1)),-1*np.ones((len(testing_c),1))),axis = 0) # vectores teóricos (etiquetas)
-y_test_bc =  np.concatenate((np.ones((len(testing_b),1)),-1*np.ones((len(testing_c),1))),axis = 0) # vectores teóricos (etiquetas)
-
-
+y_test_ab =  np.array([1,-1,-1]*len(testing_a)).reshape(len(testing_a)*3,1) # vectores teóricos (etiquetas)
+y_test_ac =  np.array([-1,1,-1]*len(testing_a)).reshape(len(testing_a)*3,1) # vectores teóricos (etiquetas)
+y_test_bc =  np.array([-1,-1,1]*len(testing_a)).reshape(len(testing_a)*3,1) # vectores teóricos (etiquetas)
 
 # Visualización datos de entrenamiento
 plt.scatter(training_a[:,0], training_a[:,1], c='red', label='Clase a')
@@ -65,7 +59,6 @@ def segmentacion_datos(training_matrix, i, valid_len):
     valid = training_matrix[(valid_len*i):(valid_len*(i+1)),:] # Conjunto de validación
 
     return train, valid
-
  
 '''
 Algoritmo mínimos cuadrados (LMS):
@@ -95,18 +88,16 @@ def LMS(train_data, validation_data, y_train, y_test):
 
     # Métricas de rendimiento: 
     c_lms = confusion_matrix(y_test, y_out)
-    # acc_lms = 100*(c_lms[0,0] + c_lms[1,1])/sum(sum(c_lms))
-    # err_lms = 100 - acc_lms
-    # se_lms = 100*c_lms[0,0]/(c_lms[0,0] + c_lms[0,1])
-    # sp_lms = 100*c_lms[1,1]/(c_lms[1,1] + c_lms[1,0])
+    acc_lms = 100*(c_lms[0,0] + c_lms[1,1])/sum(sum(c_lms))
+    err_lms = 100 - acc_lms
+    se_lms = 100*c_lms[0,0]/(c_lms[0,0] + c_lms[0,1])
+    sp_lms = 100*c_lms[1,1]/(c_lms[1,1] + c_lms[1,0])
 
-    #return [W, acc_lms, err_lms, se_lms, sp_lms]
-    return accuracy_score(y_test, y_out)
+    return [W, acc_lms, err_lms, se_lms, sp_lms]
 
 '''
 Algoritmo discriminiante Logistico
 '''
-
 def sigmoid(x):
     sig = 1/(1 + math.exp(-x))
     return sig
@@ -131,14 +122,16 @@ def DL(train_data, validation_data, y_train, y_test):
 
     # Métricas de rendimiento: 
     c_dl = confusion_matrix(y_test, y_out)
-    # acc_dl = 100*(c_dl[0,0] + c_dl[1,1])/sum(sum(c_dl))
-    # err_dl = 100 - acc_dl
-    # se_dl = 100*c_dl[0,0]/(c_dl[0,0] + c_dl[0,1])
-    # sp_dl = 100*c_dl[1,1]/(c_dl[1,1] + c_dl[1,0])
+    acc_dl = 100*(c_dl[0,0] + c_dl[1,1])/sum(sum(c_dl))
+    err_dl = 100 - acc_dl
+    se_dl = 100*c_dl[0,0]/(c_dl[0,0] + c_dl[0,1])
+    sp_dl = 100*c_dl[1,1]/(c_dl[1,1] + c_dl[1,0])
 
-    #return [W, acc_lms, err_lms, se_lms, sp_lms]
-    return accuracy_score(y_test, y_out)
+    return [W, acc_dl, err_dl, se_dl, sp_dl]
 
+'''
+Algoritmo Perceptron
+'''
 def perceptron(train_data, validation_data, y_train, y_test):
     # Entrenamiento:
     training_matrix = np.concatenate((train_data,np.ones((len(train_data),1))),axis = 1) # concatenamos x0 = 1 
@@ -158,15 +151,15 @@ def perceptron(train_data, validation_data, y_train, y_test):
 
     # Métricas de rendimiento: 
     c_p = confusion_matrix(y_test, y_out)
-    # acc_p = 100*(c_p[0,0] + c_p[1,1])/sum(sum(c_p))
-    # err_p = 100 - acc_p
-    # se_p = 100*c_p[0,0]/(c_p[0,0] + c_p[0,1])
-    # sp_p = 100*c_p[1,1]/(c_p[1,1] + c_p[1,0])
-    #return [W, acc_lms, err_lms, se_lms, sp_lms]
-    return accuracy_score(y_test, y_out)
+    acc_p = 100*(c_p[0,0] + c_p[1,1])/sum(sum(c_p))
+    err_p = 100 - acc_p
+    se_p = 100*c_p[0,0]/(c_p[0,0] + c_p[0,1])
+    sp_p = 100*c_p[1,1]/(c_p[1,1] + c_p[1,0])
+    return [W, acc_p, err_p, se_p, sp_p]
+
 
 k = 10
-valid_len = int(len(training_matrix_ab)/k)
+valid_len = int(len(training_matrix_abc)/k)
 
 resultados_LMS_ab = []
 resultados_LMS_ac = []
@@ -181,27 +174,25 @@ resultados_P_ac = []
 resultados_P_bc = []
 
 for i in range(k):
-    # Datos de validación y entrenamiento para hiperplano entre clase a y clase b
-    train_ab, valid_ab = segmentacion_datos(training_matrix_ab, i, valid_len)
+    # Datos de validación y entrenamiento para hiperplanos
+    train_abc, valid_abc = segmentacion_datos(training_matrix_abc, i, valid_len)
+
+    # Salidas para validación y entrenamiento
     y_train_ab_cross, y_valid_ab_cross = segmentacion_datos(y_train_ab, i, valid_len)
-    # Datos de validación y entrenamiento para hiperplano entre clase a y clase c
-    train_ac, valid_ac = segmentacion_datos(training_matrix_ac, i, valid_len)
     y_train_ac_cross, y_valid_ac_cross = segmentacion_datos(y_train_ac, i, valid_len)
-    # Datos de validación y entrenamiento para hiperplano entre clase b y clase c
-    train_bc, valid_bc = segmentacion_datos(training_matrix_bc, i, valid_len)
     y_train_bc_cross, y_valid_bc_cross = segmentacion_datos(y_train_bc, i, valid_len)
 
     # Resulatados LMS
-    resultados_LMS_ab.append(LMS(train_ab, valid_ab, y_train_ab_cross, y_valid_ab_cross))
-    resultados_LMS_ac.append(LMS(train_ac, valid_ac, y_train_ac_cross, y_valid_ac_cross))
-    resultados_LMS_bc.append(LMS(train_bc, valid_bc, y_train_bc_cross, y_valid_bc_cross))
+    resultados_LMS_ab.append(LMS(train_abc, valid_abc, y_train_ab_cross, y_valid_ab_cross))
+    resultados_LMS_ac.append(LMS(train_abc, valid_abc, y_train_ac_cross, y_valid_ac_cross))
+    resultados_LMS_bc.append(LMS(train_abc, valid_abc, y_train_bc_cross, y_valid_bc_cross))
 
     # Resulatados DL
-    resultados_DL_ab.append(DL(train_ab, valid_ab, y_train_ab_cross, y_valid_ab_cross))
-    resultados_DL_ac.append(DL(train_ac, valid_ac, y_train_ac_cross, y_valid_ac_cross))
-    resultados_DL_bc.append(DL(train_bc, valid_bc, y_train_bc_cross, y_valid_bc_cross))
+    resultados_DL_ab.append(DL(train_abc, valid_abc, y_train_ab_cross, y_valid_ab_cross))
+    resultados_DL_ac.append(DL(train_abc, valid_abc, y_train_ac_cross, y_valid_ac_cross))
+    resultados_DL_bc.append(DL(train_abc, valid_abc, y_train_bc_cross, y_valid_bc_cross))
 
     # Resulatados Perceptron
-    resultados_P_ab.append(perceptron(train_ab, valid_ab, y_train_ab_cross, y_valid_ab_cross))
-    resultados_P_ac.append(perceptron(train_ac, valid_ac, y_train_ac_cross, y_valid_ac_cross))
-    resultados_P_bc.append(perceptron(train_bc, valid_bc, y_train_bc_cross, y_valid_bc_cross))
+    resultados_P_ab.append(perceptron(train_abc, valid_abc, y_train_ab_cross, y_valid_ab_cross))
+    resultados_P_ac.append(perceptron(train_abc, valid_abc, y_train_ac_cross, y_valid_ac_cross))
+    resultados_P_bc.append(perceptron(train_abc, valid_abc, y_train_bc_cross, y_valid_bc_cross))
