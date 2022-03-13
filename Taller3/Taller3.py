@@ -199,20 +199,26 @@ for i in range(k):
     resultados_P_b.append(perceptron(train_abc, valid_abc, y_train_b_cross, y_valid_b_cross))
     resultados_P_c.append(perceptron(train_abc, valid_abc, y_train_c_cross, y_valid_c_cross))
 
-# Hiperplanos:
+# Accuracy de cada hiperplano:
+accs_LMS_a = [resultado[1] for resultado in resultados_LMS_a]
+accs_LMS_b = [resultado[1] for resultado in resultados_LMS_b]
+accs_LMS_c = [resultado[1] for resultado in resultados_LMS_c]
+'''Faltan los de DL, DF, P'''
 
-H_a_LMS = np.array([0.35777, 0.0817868, -0.112506])
-H_b_LMS = np.array([-0.104782, -0.344544, -0.109356])
-H_c_LMS = np.array([-0.254564, 0.266729, -0.760806])
+# Mejor hiperplano par cada clase:
+H_a_LMS = resultados_LMS_a[accs_LMS_a.index(max(accs_LMS_a))][0]
+H_b_LMS = resultados_LMS_b[accs_LMS_b.index(max(accs_LMS_b))][0]
+H_c_LMS = resultados_LMS_c[accs_LMS_c.index(max(accs_LMS_c))][0]
+'''Faltan los de DL, DF, P'''
 
 testing_matrix_abc = np.concatenate((testing_matrix_abc,np.ones((len(testing_matrix_abc),1))),axis = 1) # concatenamos x0 = 1
 y_out_abc = np.zeros((len(testing_matrix_abc),1))
 y_test_abc = np.concatenate((np.zeros((len(testing_a),1)), np.ones((len(testing_a),1)), 2*np.ones((len(testing_a),1))), axis=0)
 
 for i in range(len(testing_matrix_abc)):
-    ya = sigmoid(np.dot(H_a, testing_matrix_abc[i]))
-    yb = sigmoid(np.dot(H_b, testing_matrix_abc[i]))
-    yc = sigmoid(np.dot(H_c, testing_matrix_abc[i]))
+    ya = sigmoid(np.dot(H_a_LMS.T, testing_matrix_abc[i]))
+    yb = sigmoid(np.dot(H_b_LMS.T, testing_matrix_abc[i]))
+    yc = sigmoid(np.dot(H_c_LMS.T, testing_matrix_abc[i]))
 
     out = (ya,yb,yc)
     clase = out.index(max(out))
@@ -224,8 +230,15 @@ for i in range(len(testing_matrix_abc)):
     if clase == 2:
         y_out_abc[i] = 2
 
+
+# Métricas de rendimiento:
 c_mlp = confusion_matrix(y_test_abc, y_out_abc)
-acc_mlp = 100*(c_mlp[0,0] + c_mlp[1,1] + c_mlp[2,2])/sum(sum(c_mlp))
+fp = c_mlp.sum(axis=0) - np.diag(c_mlp)  
+fn = c_mlp.sum(axis=1) - np.diag(c_mlp)
+tp = np.diag(c_mlp)
+tn = sum(sum(c_mlp)) - (fp + fn + tp)
+
+acc_mlp = 100*(tp+tn)/(tp+fp+fn+tn)
 err_mlp = 100 - acc_mlp
-se_mlp = 100*c_mlp[0,0]/(c_mlp[0,0] + c_mlp[0,1])
-sp_mlp = 100*c_mlp[1,1]/(c_mlp[1,1] + c_mlp[1,0])
+se_mlp = 100*tp/(tp+fn)
+sp_mlp = 100*tn/(tn+fp) 
