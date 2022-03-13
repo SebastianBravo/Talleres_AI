@@ -27,18 +27,20 @@ training_a, testing_a = model_selection.train_test_split(X_a,test_size = int(0.1
 training_b, testing_b = model_selection.train_test_split(X_b,test_size = int(0.15*len(X_b)),train_size = int(0.85*len(X_b)))
 training_c, testing_c = model_selection.train_test_split(X_c,test_size = int(0.15*len(X_c)),train_size = int(0.85*len(X_c)))
 
+testing_matrix_abc = np.concatenate((testing_a, testing_b, testing_c),axis = 0)
 training_matrix_abc = np.concatenate((training_a[0].reshape(1,2), training_b[0].reshape(1,2), training_c[0].reshape(1,2)),axis=0)
 
 for i in range(len(training_a)-1):
     training_matrix_abc = np.concatenate((training_matrix_abc, np.concatenate((training_a[i+1].reshape(1,2), training_b[i+1].reshape(1,2), training_c[i+1].reshape(1,2)),axis=0)), axis=0)
 
-y_train_ab =  np.array([1,-1,-1]*len(training_a)).reshape(len(training_matrix_abc),1) # vectores teóricos (etiquetas)
-y_train_ac =  np.array([-1,1,-1]*len(training_a)).reshape(len(training_matrix_abc),1) # vectores teóricos (etiquetas)
-y_train_bc =  np.array([-1,-1,1]*len(training_a)).reshape(len(training_matrix_abc),1) # vectores teóricos (etiquetas)
 
-y_test_ab =  np.array([1,-1,-1]*len(testing_a)).reshape(len(testing_a)*3,1) # vectores teóricos (etiquetas)
-y_test_ac =  np.array([-1,1,-1]*len(testing_a)).reshape(len(testing_a)*3,1) # vectores teóricos (etiquetas)
-y_test_bc =  np.array([-1,-1,1]*len(testing_a)).reshape(len(testing_a)*3,1) # vectores teóricos (etiquetas)
+y_train_a =  np.array([1,-1,-1]*len(training_a)).reshape(len(training_matrix_abc),1) # vectores teóricos (etiquetas)
+y_train_b =  np.array([-1,1,-1]*len(training_a)).reshape(len(training_matrix_abc),1) # vectores teóricos (etiquetas)
+y_train_c =  np.array([-1,-1,1]*len(training_a)).reshape(len(training_matrix_abc),1) # vectores teóricos (etiquetas)
+
+y_test_a =  np.array([1,-1,-1]*len(testing_a)).reshape(len(testing_a)*3,1) # vectores teóricos (etiquetas)
+y_test_b =  np.array([-1,1,-1]*len(testing_a)).reshape(len(testing_a)*3,1) # vectores teóricos (etiquetas)
+y_test_c =  np.array([-1,-1,1]*len(testing_a)).reshape(len(testing_a)*3,1) # vectores teóricos (etiquetas)
 
 # Visualización datos de entrenamiento
 plt.scatter(training_a[:,0], training_a[:,1], c='red', label='Clase a')
@@ -161,38 +163,69 @@ def perceptron(train_data, validation_data, y_train, y_test):
 k = 10
 valid_len = int(len(training_matrix_abc)/k)
 
-resultados_LMS_ab = []
-resultados_LMS_ac = []
-resultados_LMS_bc = []
+resultados_LMS_a = []
+resultados_LMS_b = []
+resultados_LMS_c = []
 
-resultados_DL_ab = []
-resultados_DL_ac = []
-resultados_DL_bc = []
+resultados_DL_a = []
+resultados_DL_b = []
+resultados_DL_c = []
 
-resultados_P_ab = []
-resultados_P_ac = []
-resultados_P_bc = []
+resultados_P_a = []
+resultados_P_b = []
+resultados_P_c = []
 
 for i in range(k):
     # Datos de validación y entrenamiento para hiperplanos
     train_abc, valid_abc = segmentacion_datos(training_matrix_abc, i, valid_len)
 
     # Salidas para validación y entrenamiento
-    y_train_ab_cross, y_valid_ab_cross = segmentacion_datos(y_train_ab, i, valid_len)
-    y_train_ac_cross, y_valid_ac_cross = segmentacion_datos(y_train_ac, i, valid_len)
-    y_train_bc_cross, y_valid_bc_cross = segmentacion_datos(y_train_bc, i, valid_len)
+    y_train_a_cross, y_valid_a_cross = segmentacion_datos(y_train_a, i, valid_len)
+    y_train_b_cross, y_valid_b_cross = segmentacion_datos(y_train_b, i, valid_len)
+    y_train_c_cross, y_valid_c_cross = segmentacion_datos(y_train_c, i, valid_len)
 
     # Resulatados LMS
-    resultados_LMS_ab.append(LMS(train_abc, valid_abc, y_train_ab_cross, y_valid_ab_cross))
-    resultados_LMS_ac.append(LMS(train_abc, valid_abc, y_train_ac_cross, y_valid_ac_cross))
-    resultados_LMS_bc.append(LMS(train_abc, valid_abc, y_train_bc_cross, y_valid_bc_cross))
+    resultados_LMS_a.append(LMS(train_abc, valid_abc, y_train_a_cross, y_valid_a_cross))
+    resultados_LMS_b.append(LMS(train_abc, valid_abc, y_train_b_cross, y_valid_b_cross))
+    resultados_LMS_c.append(LMS(train_abc, valid_abc, y_train_c_cross, y_valid_c_cross))
 
     # Resulatados DL
-    resultados_DL_ab.append(DL(train_abc, valid_abc, y_train_ab_cross, y_valid_ab_cross))
-    resultados_DL_ac.append(DL(train_abc, valid_abc, y_train_ac_cross, y_valid_ac_cross))
-    resultados_DL_bc.append(DL(train_abc, valid_abc, y_train_bc_cross, y_valid_bc_cross))
+    resultados_DL_a.append(DL(train_abc, valid_abc, y_train_a_cross, y_valid_a_cross))
+    resultados_DL_b.append(DL(train_abc, valid_abc, y_train_b_cross, y_valid_b_cross))
+    resultados_DL_c.append(DL(train_abc, valid_abc, y_train_c_cross, y_valid_c_cross))
 
     # Resulatados Perceptron
-    resultados_P_ab.append(perceptron(train_abc, valid_abc, y_train_ab_cross, y_valid_ab_cross))
-    resultados_P_ac.append(perceptron(train_abc, valid_abc, y_train_ac_cross, y_valid_ac_cross))
-    resultados_P_bc.append(perceptron(train_abc, valid_abc, y_train_bc_cross, y_valid_bc_cross))
+    resultados_P_a.append(perceptron(train_abc, valid_abc, y_train_a_cross, y_valid_a_cross))
+    resultados_P_b.append(perceptron(train_abc, valid_abc, y_train_b_cross, y_valid_b_cross))
+    resultados_P_c.append(perceptron(train_abc, valid_abc, y_train_c_cross, y_valid_c_cross))
+
+# Hiperplanos:
+
+H_a_LMS = np.array([0.35777, 0.0817868, -0.112506])
+H_b_LMS = np.array([-0.104782, -0.344544, -0.109356])
+H_c_LMS = np.array([-0.254564, 0.266729, -0.760806])
+
+testing_matrix_abc = np.concatenate((testing_matrix_abc,np.ones((len(testing_matrix_abc),1))),axis = 1) # concatenamos x0 = 1
+y_out_abc = np.zeros((len(testing_matrix_abc),1))
+y_test_abc = np.concatenate((np.zeros((len(testing_a),1)), np.ones((len(testing_a),1)), 2*np.ones((len(testing_a),1))), axis=0)
+
+for i in range(len(testing_matrix_abc)):
+    ya = sigmoid(np.dot(H_a, testing_matrix_abc[i]))
+    yb = sigmoid(np.dot(H_b, testing_matrix_abc[i]))
+    yc = sigmoid(np.dot(H_c, testing_matrix_abc[i]))
+
+    out = (ya,yb,yc)
+    clase = out.index(max(out))
+
+    if clase == 0:
+        y_out_abc[i] = 0
+    if clase == 1:
+        y_out_abc[i] = 1
+    if clase == 2:
+        y_out_abc[i] = 2
+
+c_mlp = confusion_matrix(y_test_abc, y_out_abc)
+acc_mlp = 100*(c_mlp[0,0] + c_mlp[1,1] + c_mlp[2,2])/sum(sum(c_mlp))
+err_mlp = 100 - acc_mlp
+se_mlp = 100*c_mlp[0,0]/(c_mlp[0,0] + c_mlp[0,1])
+sp_mlp = 100*c_mlp[1,1]/(c_mlp[1,1] + c_mlp[1,0])
