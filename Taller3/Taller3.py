@@ -262,7 +262,7 @@ accs_DL_b = [resultado[1] for resultado in resultados_DL_b]
 accs_DL_c = [resultado[1] for resultado in resultados_DL_c]
 
 # DF
-accs_DF_a = [resultado[1] for resultado in resultados_DF_a]
+accs_DF_a = [resultado[1] for resultado in resultados_DF_a] 
 accs_DF_b = [resultado[1] for resultado in resultados_DF_b]
 accs_DF_c = [resultado[1] for resultado in resultados_DF_c]
 
@@ -326,7 +326,8 @@ def MLP(H_a, H_b, H_c, testing_matrix, y_test):
 
     return [acc_mlp, err_mlp, se_mlp, sp_mlp]
 
+# Resultados con metricas de rendimiento para MLP utilizando distintos tipos de clasificadores lineales
 resultados_MLP_LMS = MLP(H_a_LMS, H_b_LMS, H_c_LMS, testing_matrix_abc, y_test_abc)
-resultados_MLP_DL = MLP(H_a_DL, H_b_DL, H_c_DL, testing_matrix_abc, y_test_abc)
+resultados_MLP_DL = MLP(-H_a_DL, -H_b_DL, -H_c_DL, testing_matrix_abc, y_test_abc)
 resultados_MLP_DF = MLP(H_a_DF, H_b_DF, H_c_DF, testing_matrix_abc, y_test_abc)
 resultados_MLP_P = MLP(H_a_P, H_b_P, H_c_P, testing_matrix_abc, y_test_abc)
