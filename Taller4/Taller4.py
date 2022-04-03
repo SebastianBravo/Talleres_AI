@@ -34,13 +34,13 @@ Training_3, Testing_3 = model_selection.train_test_split(ok,test_size = int(0.2*
 
 # Creación matriz de entrenamiento y etiquetas matriz de entrenamiento.
 T_m = np.concatenate((Training_0,Training_1,Training_2,Training_3), axis = 0)
-Y_train = T_m[:,64]
+y_train = T_m[:,64]
 T_m = T_m[:,:-1] # Remoción de etiquetas
 
 # Creación matriz de prueba y etiquetas matriz de prueba.
-Testing_matrix = np.concatenate((Testing_0,Testing_1,Testing_2,Testing_3), axis = 0)
-Y_test =  Testing_matrix[:,64]
-Testing_matrix = Testing_matrix[:,:-1] # Remoción de etiquetas
+testing_matrix = np.concatenate((Testing_0,Testing_1,Testing_2,Testing_3), axis = 0)
+y_test =  testing_matrix[:,64]
+testing_matrix = testing_matrix[:,:-1] # Remoción de etiquetas
 
 #Construccion de matriz de entrenamiento y validacion (Validación (20% del total de datos o 25 % del conjunto de entrenamiento))
 train_0, val_0 = model_selection.train_test_split(Training_0, test_size= int(0.25*len(Training_0)), train_size = int(0.75*len(Training_0)))
@@ -48,20 +48,20 @@ train_1, val_1 = model_selection.train_test_split(Training_1, test_size= int(0.2
 train_2, val_2 = model_selection.train_test_split(Training_2, test_size= int(0.25*len(Training_2)), train_size = int(0.75*len(Training_2)))
 train_3, val_3 = model_selection.train_test_split(Training_3, test_size= int(0.25*len(Training_3)), train_size = int(0.75*len(Training_3)))
 
-Traning_matrix = np.concatenate((train_0,train_1,train_2,train_3), axis = 0)
-Traning_matrix = Traning_matrix[:,:-1] # Remoción de etiquetas
-Valid_matrix = np.concatenate((val_0,val_1,val_2,val_3), axis = 0)
-Valid_matrix = Valid_matrix[:,:-1] # Remoción de etiquetas
+training_matrix = np.concatenate((train_0,train_1,train_2,train_3), axis = 0)
+training_matrix = training_matrix[:,:-1] # Remoción de etiquetas
+validating_matrix = np.concatenate((val_0,val_1,val_2,val_3), axis = 0)
+validating_matrix = validating_matrix[:,:-1] # Remoción de etiquetas
 
 # Etiquetas para entrenamiento y validacion
 y_train = np.concatenate((np.zeros(len(train_0)), np.ones(len(train_1)), 2*np.ones(len(train_2)) , 3*np.ones(len(train_3))), axis = 0)
 y_val = np.concatenate((np.zeros(len(val_0)), np.ones(len(val_1)), 2*np.ones(len(val_2)) , 3*np.ones(len(val_3))), axis = 0)
 
 # Comprobación homogeneidad de datos
-y_train_0 = len(np.where(Y_train == 0)[0]) 
-y_train_1 = len(np.where(Y_train == 1)[0]) 
-y_train_2 = len(np.where(Y_train == 2)[0]) 
-y_train_3 = len(np.where(Y_train == 3)[0]) 
+y_train_0 = len(np.where(y_train == 0)[0]) 
+y_train_1 = len(np.where(y_train == 1)[0]) 
+y_train_2 = len(np.where(y_train == 2)[0]) 
+y_train_3 = len(np.where(y_train == 3)[0]) 
 
 # NOTA: LOS DATOS NO SON HOMOGENEOS, PERO LA DIFERENCIA ENTRE EL NÚMERO DE DATOS ENTRE CLASES ES MENOR AL 1.5%
 
@@ -70,31 +70,76 @@ class_weights = {0:y_train_0/(y_train_1+y_train_2+y_train_3+y_train_0),
                 2:y_train_2/(y_train_1+y_train_2+y_train_3+y_train_0),
                 3:y_train_3/(y_train_1+y_train_2+y_train_3+y_train_0),}
 
-##SVM polinomial
-###Construccion del modelo
-SVM_poli_model = svm.SVC(C= 1.0,
-                           gamma = 'auto',
-                           degree = 3,
-                           kernel = 'poly',
-                           class_weight = class_weights,
-                           decision_function_shape='ovr',
-                           verbose=1)
+# Entrenamiento de SVM polinomial
+# F1 score por iteración
+SVM_OVA_F1_scores = []
+SVM_OVO_F1_scores = []
 
-SVM_poli_model.fit(Traning_matrix, y_train)
-# Validación
-y_out = SVM_poli_model.predict(Valid_matrix)
-F1_score_SVM_poli = 100*f1_score(y_val, y_out, average = 'weighted')
+for i in range(1,11):
+    #Construcción del modelo con transformación OVA
+    SVM_OVA = svm.SVC(gamma = 'auto',
+                      degree = i,
+                      kernel = 'poly',
+                      class_weight = class_weights,
+                      decision_function_shape='ovr',
+                      verbose=1)
+
+    #Construcción del modelo con transformación OVO
+    SVM_OVO = svm.SVC(gamma = 'auto',
+                      degree = i,
+                      kernel = 'poly',
+                      class_weight = class_weights,
+                      decision_function_shape='ovo',
+                      verbose=1)
+
+    # Entrenamiento de modelos
+    SVM_OVA.fit(training_matrix, y_train)
+    SVM_OVO.fit(training_matrix, y_train)
+
+    # Validación
+    y_out = SVM_OVA.predict(validating_matrix) 
+    SVM_OVA_F1_scores.append(100*f1_score(y_val, y_out, average = 'weighted'))
+
+    y_out = SVM_OVO.predict(validating_matrix) 
+    SVM_OVO_F1_scores.append(100*f1_score(y_val, y_out, average = 'weighted'))
+
+# NOTA: EL mejor resultado se obtuvo con polinomios de grado 2
+
+SVM_OVA = svm.SVC(gamma = 'auto',
+                  degree = 2,
+                  kernel = 'poly',
+                  class_weight = class_weights,
+                  decision_function_shape='ovr',
+                  verbose=1)
+
+#Construcción del modelo con transformación OVO
+SVM_OVO = svm.SVC(gamma = 'auto',
+                  degree = 2,
+                  kernel = 'poly',
+                  class_weight = class_weights,
+                  decision_function_shape='ovo',
+                  verbose=1)
+
+# Entrenamiento de modelos
+SVM_OVA.fit(training_matrix, y_train)
+SVM_OVO.fit(training_matrix, y_train)
 
 # Prueba
-y_out= SVM_poli_model.predict(Testing_matrix)
-F1_score_SVM_poli = 100*f1_score(Y_test, y_out, average = 'weighted')
+y_out = SVM_OVA.predict(testing_matrix)
+F1_score_OVA = 100*f1_score(y_test, y_out, average = 'weighted')
+c_OVA = confusion_matrix(y_test, y_out)
+
+
+y_out = SVM_OVO.predict(testing_matrix)
+F1_score_OVO = 100*f1_score(y_test, y_out, average = 'weighted')
+c_OVO = confusion_matrix(y_test, y_out)
 
 '''--------------------------------------------- Punto 2 ----------------------------------------'''
 
 # Importar datos de cada clase
 X = np.genfromtxt('data/Punto 2/letter-recognition.csv', delimiter=',', skip_header=1, dtype=str)
 
-# Tomando como referencia el nombre (Sebastian Bravo) se encuentran las etiquetas para clasificación binaria:
+# Tomando como referencia el nombre (Danie Zambrano) se encuentran las etiquetas para clasificación binaria:
 y = np.zeros(len(X)) # Inicializar el vector etiquetas
 
 # Etiquetas para clasificación binaria
@@ -122,18 +167,8 @@ testing_matrix = np.concatenate((Testing_0, Testing_1), axis=0)
 y_train = np.concatenate((np.zeros(len(Training_0)), np.ones(len(Training_1))), axis=0)
 y_test = np.concatenate((np.zeros(len(Testing_0)), np.ones(len(Testing_1))), axis=0)
 
-# #Construccion de matriz de entrenamiento y validacion (Validación (20% del total de datos o 25 % del conjunto de entrenamiento))
-# train_0, val_0 = model_selection.train_test_split(Training_0, test_size= int(0.25*len(Training_0)), train_size = int(0.75*len(Training_0)))
-# train_1, val_1 = model_selection.train_test_split(Training_1, test_size= int(0.25*len(Training_1)), train_size = int(0.75*len(Training_1)))
-
-# training_matrix = np.concatenate((train_0,train_1), axis = 0)
-# validating_matrix = np.concatenate((val_0,val_1), axis = 0)
-
-# # Etiquetas para entrenamiento y validacion
-# y_train = np.concatenate((np.zeros(len(train_0)), np.ones(len(train_1))), axis = 0)
-# y_val = np.concatenate((np.zeros(len(val_0)), np.ones(len(val_1))), axis = 0)
-
 '''----------------------------------------- MLP -----------------------------------------'''
+# Número de atributos
 d = np.size(training_matrix, axis=1)
 
 # Validación cruzada para tener (Validación (20% del total de datos o 25 % del conjunto de entrenamiento))
@@ -224,6 +259,7 @@ for train_indices, test_indices in cv.split(training_matrix):
     err_mlp_5.append(history_mlp_5.history['val_loss'])
     err_mlp_6.append(history_mlp_6.history['val_loss'])
 
+# Errores promedio encontrados
 err_bar_mlp_1 = np.mean(np.asarray(err_mlp_1))
 err_bar_mlp_2 = np.mean(np.asarray(err_mlp_2))
 err_bar_mlp_3 = np.mean(np.asarray(err_mlp_3))
