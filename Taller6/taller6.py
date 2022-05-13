@@ -24,22 +24,32 @@ time = scaling(time)
 age = scaling(age)
 points = scaling(points)
 
-#Descripcion Estadisitica.
+# Histogrmas
+fig,axs= plt.subplots(5)
+axs[0].hist(assists,color="red",label="Asistencias")
+axs[1].hist(height, color="blue", label= "Altura")
+axs[2].hist(time, color="gray", label= "Tiempo jugado")
+axs[3].hist(age, color="yellow", label= "Edad")
+axs[4].hist(points, color="green", label= "Promedio de puntos jugado")
 
-
-# fig,axs= plt.subplots(5)
-# axs[0].hist(dt[:,0],color="red",label="Asistencias")
-# axs[1].hist(dt[:,1], color="blue", label= "Altura")
-# axs[2].hist(dt[:,2], color="gray", label= "Tiempo jugado")
-# axs[3].hist(dt[:,3], color="yellow", label= "Edad")
-# axs[4].hist(dt[:,4], color="green", label= "Promedio de puntos jugado")
-
-# axs[0].grid()
-# axs[1].grid()
-# axs[2].grid()
-# axs[3].grid()
-# axs[4].grid()
+axs[0].grid()
+axs[1].grid()
+axs[2].grid()
+axs[3].grid()
+axs[4].grid()
 
 # fig.legend()
+
+
+# Descripcion Estadisitica [min, max, mean, var].
+est_assists = [np.min(assists), np.max(assists), np.mean(assists), np.var(assists)]
+est_height = [np.min(height), np.max(height), np.mean(height), np.var(height)]
+est_time = [np.min(time), np.max(time), np.mean(time), np.var(time)]
+est_age = [np.min(age), np.max(age), np.mean(age), np.var(age)]
+est_points = [np.min(points), np.max(points), np.mean(points), np.var(points)]
+
+# Diagrama de dispersión
+
+
 
 # plt.show()
