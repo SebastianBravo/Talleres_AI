@@ -7,6 +7,8 @@ from sklearn.metrics import mean_squared_error
 # Importar datos
 dt = np.genfromtxt('basketball.dat', skip_header=8, delimiter=',')
 
+'''--------------------------Punto a-------------------------------'''
+
 # Caracteristicas
 assists = dt[:,0]
 height = dt[:,1]
@@ -47,13 +49,12 @@ est_age = [np.min(age), np.max(age), np.mean(age), np.var(age)]
 est_points = [np.min(points), np.max(points), np.mean(points), np.var(points)]
 
 # Diagrama de dispersión
-fig2 = plt.figure()
-ax2 = fig2.add_axes([0, 0, 1, 1])
-bp2 = ax2.boxplot([assists, height, time, age, points])
+plt.figure(2)
+plt.boxplot([assists, height, time, age, points])
 plt.xticks([1,2,3,4,5], ["Asistencias","Tiempo","Edad","Altura","Puntos"])
 
 # Matriz de covarianza
 matrix = np.concatenate((assists.reshape(-1,1), height.reshape(-1,1), time.reshape(-1,1), age.reshape(-1,1), points.reshape(-1,1)), axis = 1)
 cov_matrix = np.cov(matrix.T)
 
-# plt.show()
+'''--------------------------Punto b-------------------------------'''
