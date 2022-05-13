@@ -1,6 +1,8 @@
 import numpy as np # manejo de matrices
 import matplotlib.pyplot as plt # gráficos
 from scipy.cluster.hierarchy import dendrogram, linkage
+from sklearn.cluster import KMeans
+from scipy.spatial.distance import cdist
 
 # Importar datos
 dt = np.genfromtxt('basketball.dat', skip_header=8, delimiter=',')
@@ -56,18 +58,32 @@ matrix = np.concatenate((assists.reshape(-1,1), height.reshape(-1,1), time.resha
 cov_matrix = np.cov(matrix.T)
 
 '''--------------------------Punto b-------------------------------'''
+
+# Matriz de distancias
 z = linkage(matrix, "ward")
 
+# Gráfica dendograma
 plt.figure(3)
-# Plot title
-plt.title('Hierarchical Clustering Dendrogram')
-
-# Plot axis labels
-plt.xlabel('sample index')
-plt.ylabel('distance (Ward)')
-
-# Make the dendrogram
+plt.title('Dendrograma')
+plt.xlabel('Muestra')
+plt.ylabel('Distancia')
+plt.grid()
 dendrogram(z, leaf_rotation=90)
 
-# Show the graph
+
+# k means determine k
+distortions = []
+K = range(1,30)
+for k in K:
+    kmeanModel = KMeans(n_clusters=k).fit(matrix)
+    kmeanModel.fit(matrix)
+    distortions.append(sum(np.min(cdist(matrix, kmeanModel.cluster_centers_, 'euclidean'), axis=1)) / matrix.T.shape[0])
+
+# Plot the elbow
+plt.figure(4)
+plt.plot(K, distortions, 'bx-')
+plt.xlabel('k')
+plt.ylabel('Distorisión')
+plt.title('Método de codo')
+plt.grid()
 plt.show()
