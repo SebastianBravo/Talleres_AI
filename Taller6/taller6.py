@@ -1,8 +1,6 @@
 import numpy as np # manejo de matrices
 import matplotlib.pyplot as plt # gráficos
-from sklearn.linear_model import LinearRegression 
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.metrics import mean_squared_error
+from scipy.cluster.hierarchy import dendrogram, linkage
 
 # Importar datos
 dt = np.genfromtxt('basketball.dat', skip_header=8, delimiter=',')
@@ -58,3 +56,18 @@ matrix = np.concatenate((assists.reshape(-1,1), height.reshape(-1,1), time.resha
 cov_matrix = np.cov(matrix.T)
 
 '''--------------------------Punto b-------------------------------'''
+z = linkage(matrix, "ward")
+
+plt.figure(3)
+# Plot title
+plt.title('Hierarchical Clustering Dendrogram')
+
+# Plot axis labels
+plt.xlabel('sample index')
+plt.ylabel('distance (Ward)')
+
+# Make the dendrogram
+dendrogram(z, leaf_rotation=90)
+
+# Show the graph
+plt.show()
