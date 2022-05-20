@@ -1,7 +1,9 @@
 import numpy as np # manejo de matrices
 import matplotlib.pyplot as plt # gráficos
+import matplotlib.cm as cm
 from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score,silhouette_samples
 from scipy.spatial.distance import cdist
 import random
 
@@ -138,4 +140,35 @@ ax.set_zlabel('Atributo 3')
 plt.legend()
 plt.grid()
 
+# Coeficiente de silueta.
+cluster_labels2=np.unique(min_d)
+n_clusters2=cluster_labels2.shape[0]
+silhouette_score_cluster_2=silhouette_score(matrix,min_d)
+print("Silhouette Score When Cluster Number Set to 3: %.3f" % silhouette_score_cluster_2)
+silhouette_vals2 = silhouette_samples(matrix,min_d,metric='euclidean')
+y_ax_lower2,y_ax_upper2=0,0
+yticks2=[]
+
+plt.figure(6)
+for i,p in enumerate(cluster_labels2):
+    c_silhouette_vals2=silhouette_vals2[min_d==p]
+    c_silhouette_vals2.sort()
+    y_ax_upper2+=len(c_silhouette_vals2)
+    color=cm.jet(float(i)/n_clusters2)
+    plt.barh(range(y_ax_lower2,y_ax_upper2),
+             c_silhouette_vals2,
+             height=1.0,
+             edgecolor='none',
+             color=color)
+    yticks2.append((y_ax_lower2+y_ax_upper2)/2.0)
+    y_ax_lower2+=len(c_silhouette_vals2)
+
+silhouette_avg2=np.mean(silhouette_vals2)
+plt.axvline(silhouette_avg2,
+             color='red',
+             linestyle='--')
+plt.yticks(yticks2,cluster_labels2+1)
+plt.ylabel("Cluster")
+plt.xlabel("Coeficientes de silueta")
+plt.grid()
 plt.show()
